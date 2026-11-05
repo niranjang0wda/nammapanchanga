@@ -445,8 +445,8 @@ function render(rawPath, site, now) {
   const today0 = istToday(now);
   const today = today0 < FIRST ? FIRST : today0 > LAST ? LAST : today0;
   const secsToMidnight = Math.max(60, Math.floor((Date.parse(addDays(today0, 1) + "T00:00:00+05:30") - now) / 1000));
-  const daily = `public, max-age=300, s-maxage=${secsToMidnight}`;
-  const stable = "public, max-age=3600, s-maxage=604800";
+  const daily = `public, max-age=60, s-maxage=${secsToMidnight}`; // browsers re-check after a minute, the edge keeps it until midnight
+  const stable = "public, max-age=60, s-maxage=604800";
   const html = (body, cache) => ({ status: 200, type: "text/html; charset=utf-8", body, cache });
   let p = rawPath.split("?")[0];
   try { p = decodeURIComponent(p); } catch (e) { /* keep as is */ }
