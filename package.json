@@ -1,0 +1,10 @@
+{
+  "name": "namma-panchanga-web",
+  "private": true,
+  "type": "module",
+  "description": "Namma Panchanga website — Cloudflare Pages with server-rendered pages",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
