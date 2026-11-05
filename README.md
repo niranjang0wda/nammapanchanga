@@ -1,7 +1,7 @@
 # Namma Panchanga — website (Cloudflare Workers + static assets)
 
 Every page is rendered on the server by a Cloudflare Worker, so Google, Bing and AI search bots get complete HTML.
-About 18,500 pages: home, 42 towns (today), month calendars and every day from 1 Nov 2026 to 31 Dec 2027.
+About 37,000 pages in Kannada (/) and English (/en/): home, 42 towns (today), month calendars and every day from 1 Nov 2026 to 31 Dec 2027. Each page links to its other language with hreflang.
 
 ## Files
 - `src/worker.js` — the Worker: renders all pages, edge cache until midnight IST
