@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers settings. Build command: npm run build · Deploy command: npx wrangler deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nammapanchanga",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "none"
+  },
+  "observability": { "enabled": true }
+}
