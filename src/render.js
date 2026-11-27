@@ -27,7 +27,26 @@ const ALIAS = {
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const T = (L, k, e) => (L === "en" ? e : k);
 const P = (L, p) => (L === "en" ? "/en" + p : p);
-const nm = (L, i) => (NAMES[i] || ["", ""])[L === "en" ? 1 : 0];
+const nm = (L, i) => (i && typeof i === "object" ? (L === "en" ? i.en || i.kn : i.kn || i.en) : (NAMES[i] || ["", ""])[L === "en" ? 1 : 0]);
+
+// Festival corrections from the app's admin panel (set by the worker before rendering)
+let OVERRIDES = [];
+export function setOverrides(list) { OVERRIDES = Array.isArray(list) ? list : []; }
+function applyOverrides(townId, iso, fest, moon) {
+  if (!OVERRIDES.length) return [fest, moon];
+  let f = fest.slice(), m = moon.slice();
+  for (const o of OVERRIDES) {
+    if (o.paused || (o.towns && o.towns.length && !o.towns.includes(townId))) continue;
+    const name = o.name_kn || o.name_en;
+    const is = (x) => nm("kn", x) === o.name_kn || (o.name_en && nm("en", x) === o.name_en);
+    const remove = () => { f = f.filter((x) => !is(x)); m = m.filter((x) => !is(x)); };
+    const add = () => { if (name && !f.some(is) && !m.some(is)) f.push({ kn: o.name_kn || o.name_en, en: o.name_en || o.name_kn }); };
+    if (o.action === "hide" && o.date === iso) remove();
+    if (o.action === "add" && o.date === iso) add();
+    if (o.action === "move") { if (o.from === iso) remove(); if (o.to === iso) add(); }
+  }
+  return [f, m];
+}
 const li = (L) => (L === "en" ? 1 : 0);
 function istToday(now) { return new Date(now + 5.5 * 3600 * 1000).toISOString().slice(0, 10); }
 function addDays(iso, n) { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
@@ -53,7 +72,7 @@ function day(townId, iso) {
     tithi: r[7], tithiEnd: r[8], tithiNext: r[9], nak: r[10], nakEnd: r[11], nakNext: r[12],
     yoga: r[13], yogaEnd: r[14], karana: r[15], sunrise: r[16], sunset: r[17], moonrise: r[18], moonset: r[19],
     rahu: [r[20], r[21]], yama: [r[22], r[23]], gulika: [r[24], r[25]], abhijit: r[26] == null ? null : [r[26], r[27]],
-    fest: r[29], moon: r[30],
+    ...(() => { const [fest, moon] = applyOverrides(townId, iso, r[29], r[30]); return { fest, moon }; })(),
   };
 }
 function nextFestivals(townId, fromIso, count) {

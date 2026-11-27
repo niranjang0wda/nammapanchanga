@@ -1,5 +1,18 @@
 // Cloudflare Worker: static files in /public are served automatically; every page is rendered here on the server.
-import { render } from "./render.js";
+import { render, setOverrides } from "./render.js";
+
+// Festival corrections from the admin panel: fetched at most every 10 minutes (pages also stay cached until midnight)
+const OVERRIDES_URL = "https://asia-south1-namma-panchanga.cloudfunctions.net/festivalOverrides";
+let ov = { at: 0, list: [] };
+async function loadOverrides(env) {
+  if (Date.now() - ov.at < 10 * 60 * 1000) return;
+  try {
+    const r = await fetch(env.OVERRIDES_URL || OVERRIDES_URL, { cf: { cacheTtl: 300 } });
+    if (r.ok) { const j = await r.json(); ov = { at: Date.now(), list: j.list || [] }; }
+    else ov.at = Date.now();
+  } catch (e) { ov.at = Date.now(); }
+  setOverrides(ov.list);
+}
 import { SITE_URL } from "./site-url.js";
 
 export default {
@@ -18,6 +31,7 @@ export default {
       if (hit) return request.method === "HEAD" ? new Response(null, hit) : hit;
     }
 
+    await loadOverrides(env);
     const r = render(url.pathname, site, Date.now());
     const headers = { "Cache-Control": r.cache, "X-Content-Type-Options": "nosniff" };
     const resp = r.location
